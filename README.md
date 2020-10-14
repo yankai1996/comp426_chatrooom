@@ -22,3 +22,8 @@ exports.dbConfig = dbConfig;
 exports.serverConfig = serverConfig;
 ```
 
+
+
+### UI/UX Mockups
+
+https://www.figma.com/file/A2BP7i3pf7v2XP4wzDpvXE/ChatRoom?node-id=0%3A1
