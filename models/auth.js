@@ -1,4 +1,4 @@
-import { sha1 } from "crypto-js/sha1";
+const sha1 = require("crypto-js/sha1");
 
 class Auth {
     constructor(userTable) {
@@ -42,4 +42,4 @@ Auth.prototype.createUser = function(username, password) {
     });
 }
 
-export default Auth;
+exports.Auth = Auth;

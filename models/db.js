@@ -1,5 +1,5 @@
-import { Sequelize } from "sequelize";
-import { dbConfig as config } from "../config";
+const Sequelize = require("sequelize");
+const config = require("../config.js").dbConfig;
 
 const sequelize = new Sequelize(
     config.database, 
@@ -44,4 +44,4 @@ if (config.init) {
     init();
 }
 
-export default User;
+exports.User = User;
