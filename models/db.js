@@ -1,5 +1,5 @@
-const Sequelize = require('sequelize');
-const config = require('../config').dbConfig;
+import { Sequelize } from "sequelize";
+import { dbConfig as config } from "../config";
 
 const sequelize = new Sequelize(
     config.database, 
@@ -17,7 +17,7 @@ const sequelize = new Sequelize(
     }
 );
 
-var User = sequelize.define('user', {
+const User = sequelize.define('user', {
     id: {
         type: Sequelize.STRING(4),
         allowNull: false,
@@ -44,4 +44,4 @@ if (config.init) {
     init();
 }
 
-exports.User = User;
+export default User;
