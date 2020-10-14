@@ -18,6 +18,7 @@ const serverConfig = {
     port: 8888
 }
 
-export {dbConfig, serverConfig};
+exports.dbConfig = dbConfig;
+exports.serverConfig = serverConfig;
 ```
 
