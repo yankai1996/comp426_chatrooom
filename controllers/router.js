@@ -1,7 +1,11 @@
 const express = require('express');
 const browser = require('browser-detect');
-const router = express.Router();
+const Adiministator = require('../models/administrator');
+const Administrator = require('../models/administrator');
 // const auth = require('./auth');
+
+const router = express.Router();
+const admin = new Administrator();
 
 // root url
 router.get('/', (req, res) => {
@@ -30,6 +34,12 @@ const compatibleBrowser = (info) => {
     return false;
 }
 
+const sendStatus = (condition, res) => {
+    if (condition) res.status(200);
+    else res.status(400);
+    res.end();
+}
+
 router.get('/login', (req, res) => {
     const info = browser(req.headers['user-agent']);
     if (!compatibleBrowser(info)) {
@@ -38,6 +48,18 @@ router.get('/login', (req, res) => {
     } else {
         res.send('login');
     }
+});
+
+router.post('/signup', async (req, res) => {
+    sendStatus(await admin.createUser(req.body), res);
+});
+
+router.post('/login', async (req, res) => {
+    sendStatus(await admin.loginUser(req.body), res);
+});
+
+router.post('/logout', async (req, res) => {
+    sendStatus(await admin.logoutUser(req.body.username), res);
 });
 
 
