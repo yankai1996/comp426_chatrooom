@@ -1,0 +1,38 @@
+<!DOCTYPE html>
+<html lang="en">
+    <head>
+        <meta charset="UTF-8">
+        <meta name="viewport" content="width=device-width, initial-scale=1.0">
+
+        <title>Test Http Request</title>
+
+        <!-- Include links to CSS stylesheets below -->
+        <link rel="stylesheet" href="style.css" />
+    </head>
+
+
+    <body>
+        <main>
+            <h1 class="title">
+                Test Http Requests
+            </h1>
+
+            <h3>
+                This page is for testing Axios HTTP requests.
+            </h3>
+
+            <div class="code">const result = await axios({<textarea id="prompt" rows="1" autofocus="autofocus"></textarea>});</div>
+
+            <button id="button" onclick="sendRequest()">Send request</button>
+
+            <div id="message"></div>
+            <div id="response"></div>
+        </main>
+
+
+        <!-- Include links to JavaScript files below -->
+        <!-- TODO: Add link to axios here -->
+        <script src="node_modules/axios/dist/axios.min.js"></script>
+        <script src="script.js"></script>
+    </body>
+</html>

@@ -20,5 +20,6 @@ const serverConfig = {
 
 exports.dbConfig = dbConfig;
 exports.serverConfig = serverConfig;
+exports.staticPath = 'test' // or 'public'
 ```
 
