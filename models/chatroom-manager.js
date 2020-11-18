@@ -3,8 +3,6 @@ const path = require('path');
 const fs = require('fs');
 const sequelize = require('sequelize');
 const model = require('./model-sequelize/model.js');
-const { use } = require('../controllers/login-router.js');
-const { useState } = require('react');
 
 const User = model.User
     , Chatroom = model.Chatroom
@@ -22,7 +20,7 @@ class ChatroomManager {
 ChatroomManager.prototype.findUserBy = async function (constraint) {
     const user = await User.findOne({where: constraint});
     if (user) {
-        this.userDict[username] = user.id;
+        this.userDict[user.username] = user.id;
         this.roster[user.id] = {
             username: user.username,
             nickname: user.nickname
@@ -128,10 +126,12 @@ ChatroomManager.prototype.search = async function (keyword) {
 
 ChatroomManager.prototype.join = async function (username, roomId) {
     const userId = await this.getUserId(username);
-
+    
     let success = await Membership.create({
         room_id: roomId,
         user_id: userId
+    }).then(result => {
+        return result != null;
     });
     if (!success) return false;
 
@@ -139,12 +139,14 @@ ChatroomManager.prototype.join = async function (username, roomId) {
 }
 
 ChatroomManager.prototype.getUsersInRoom = async function (roomId) {
+    Membership.hasMany(User, {foreignKey: 'id'});
+    User.belongsTo(Membership, {foreignKey: 'id'});
     const users = await User.findAll({
         include: [{
             model: Membership,
-            where: {room_id: roomId}
-        }],
-        raw: true
+            where: {room_id: roomId},
+            required: false
+        }]
     }).catch(error => {
         return false;
     });

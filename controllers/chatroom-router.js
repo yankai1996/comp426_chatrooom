@@ -43,4 +43,10 @@ router.post('/chatroom/join', async (req, res) => {
     else res.send({users: result});
 });
 
+router.post('/chatroom/get', checkSession);
+router.post('/chatroom/get', async (req, res) => {
+    const result = await manager.getRoomInfo(req.body.room_id);
+    res.send(result);
+});
+
 module.exports = router;
