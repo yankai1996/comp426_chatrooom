@@ -17,6 +17,20 @@
 })();
 
 
+// function encode_base64(filename){
+//   let test = fs.readFile(path.join(__dirname,'/public/',filename),function(error,data){
+//     if(error){
+//       throw error;
+//     }else{
+//       var buf = Buffer.from(data);
+//       var base64 = buf.toString('base64');
+//       //console.log('Base64 of ddr.jpg :' + base64);
+//       return base64;
+//     }
+//   });
+//   console.log(test);
+// } 
+
 
 /**
  * Code to send the axios request
@@ -47,6 +61,10 @@ async function sendRequest() {
     response.className = 'code has-error';
     return;
   }
+
+  // if (params.data && params.data.profile) {
+  //   encode_base64(params.data.profile)
+  // }
 
   try {
     message.innerHTML = 'Sending request';
