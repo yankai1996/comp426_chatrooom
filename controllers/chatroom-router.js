@@ -13,6 +13,7 @@ const checkSession = (req, res, next) => {
     }
 }
 
+
 router.post('/chatroom/create', checkSession);
 router.post('/chatroom/create', async (req, res) => {
     const result = await manager.create(req.session.username, req.body);
@@ -43,10 +44,27 @@ router.post('/chatroom/join', async (req, res) => {
     else res.send({users: result});
 });
 
+
 router.post('/chatroom/get', checkSession);
 router.post('/chatroom/get', async (req, res) => {
     const result = await manager.getRoomInfo(req.body.room_id);
     res.send(result);
+});
+
+
+router.post('/homepage', checkSession);
+router.post('/homepage', async (req, res) => {
+    const rooms = await manager.getRoomsOfUser(req.session.username);
+    const user = await manager.findUserBy({username: req.session.username});
+    if (rooms === false || !user) res.status(500).end();
+    else res.send({
+        chatrooms: rooms,
+        user: {
+            username: user.username,
+            nickname: user.nickname,
+            profile: user.profile
+        }
+    });
 });
 
 module.exports = router;

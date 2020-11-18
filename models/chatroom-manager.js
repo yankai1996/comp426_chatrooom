@@ -19,7 +19,7 @@ class ChatroomManager {
 
 ChatroomManager.prototype.findUserBy = async function (constraint) {
     const user = await User.findOne({where: constraint});
-    if (user) {
+    if (user && !(user.username in this.userDict)) {
         this.userDict[user.username] = user.id;
         this.roster[user.id] = {
             username: user.username,
@@ -139,14 +139,14 @@ ChatroomManager.prototype.join = async function (username, roomId) {
 }
 
 ChatroomManager.prototype.getUsersInRoom = async function (roomId) {
-    Membership.hasMany(User, {foreignKey: 'id'});
-    User.belongsTo(Membership, {foreignKey: 'id'});
+    const userIds = await Membership.findAll({
+        where: {room_id: roomId}
+    }).then(result => {
+        return result.map(r => r.user_id);
+    });
     const users = await User.findAll({
-        include: [{
-            model: Membership,
-            where: {room_id: roomId},
-            required: false
-        }]
+        where: {id: userIds},
+        raw: true
     }).catch(error => {
         return false;
     });
@@ -203,6 +203,37 @@ ChatroomManager.prototype.getRoomInfo = async function (roomId) {
         users: users,
         messages: messages
     };
+}
+
+ChatroomManager.prototype.getRoomsOfUser = async function (username) {
+    const userId = await this.getUserId(username);
+
+    const roomIds = await Membership.findAll({
+        where: {user_id: userId},
+        attributes: ['room_id'],
+        raw: true
+    }).then(result => {
+        return result.map(r => r.room_id);
+    });
+
+    let rooms = await Chatroom.findAll({
+        where: {id: roomIds}
+    }).catch(error => {
+        return false;
+    });
+
+    if (rooms === false) return false;
+
+    let promises = rooms.map(async (r) => {
+        const last_message = (await this.getRoomHistory(r.id, limit=1))[0]
+        return {
+            room_id: r.id,
+            room_name: r.room_name,
+            profile: r.profile,
+            last_message: last_message
+        };
+    });
+    return await Promise.all(promises);
 }
 
 module.exports = ChatroomManager;
