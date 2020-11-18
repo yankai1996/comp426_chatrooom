@@ -1,5 +1,7 @@
-const model = require('./model-sequelize/model.js');
+const ChatroomManager = require('./chatroom-manager');
+const model = require('./model-sequelize/model');
 const User = model.User;
+const chatroomManager = new ChatroomManager();
 
 class Administrator {
     constructor(){
@@ -7,7 +9,7 @@ class Administrator {
     }
 }
 
-Administrator.prototype.usernameExist = async (username) => {
+const usernameExist = async (username) => {
     const result = await User.findOne({
         where: {
             username: username
@@ -17,16 +19,22 @@ Administrator.prototype.usernameExist = async (username) => {
 }
 
 Administrator.prototype.createUser = async function(data) {
-    if (await this.usernameExist(data.username)) {
+    if (await usernameExist(data.username)) {
         return false;
     }
-    console.log("creating...")
-    return await User.create({
+
+    let attributes = {
         username: data.username,
         nickname: data.nickname,
-        password: data.password,
-        online: false
-    }).then(result => {
+        password: data.password
+    }
+
+    if (data.profile) {
+        chatroomManager.saveUserProfile(data.profile);
+        attributes.profile = data.profile;
+    }
+
+    return await User.create(attributes).then(result => {
         return true;
     }).catch(error => {
         console.log(error);
@@ -46,7 +54,6 @@ Administrator.prototype.loginUser = async function(data) {
         returning: true,
         plain: true
     });
-    console.log(result);
     return result[1] == 1;
 }
 

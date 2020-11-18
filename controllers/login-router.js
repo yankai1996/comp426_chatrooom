@@ -1,8 +1,6 @@
 const express = require('express');
 const browser = require('browser-detect');
-const Adiministator = require('../models/administrator');
 const Administrator = require('../models/administrator');
-// const auth = require('./auth');
 
 const router = express.Router();
 const admin = new Administrator();
@@ -55,23 +53,21 @@ router.post('/signup', async (req, res) => {
 });
 
 router.post('/login', async (req, res) => {
-    sendStatus(await admin.loginUser(req.body), res);
+    const success = await admin.loginUser(req.body);
+    if (success) {
+        req.session.username = req.body.username;
+    }
+    sendStatus(success, res);
 });
 
-router.post('/logout', async (req, res) => {
-    sendStatus(await admin.logoutUser(req.body.username), res);
+router.get('/logout', async (req, res) => {
+    let success = false;
+    const username = req.session.username;
+    if (username) {
+        req.session.destroy();
+        success = await admin.logoutUser(username)
+    }
+    sendStatus(success, res);
 });
 
-
-// router.post('/login', auth.authenticate);
-// router.post('/login', auth.clearCookie);
-// router.post('/login', auth.authFail);
-
-// // log out
-// router.get('/logout', auth.clearCookie);
-// router.get('/logout', (req, res) => {
-//     res.redirect('/login');
-// });
-
-
-exports.router = router;
+module.exports = router;
