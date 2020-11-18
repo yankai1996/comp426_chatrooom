@@ -1,5 +1,5 @@
 const Sequelize = require("sequelize");
-const config = require("./../../config.js").dbConfig;
+const config = require("./../../config").dbConfig;
 
 console.log('init sequelize...');
 
@@ -20,11 +20,7 @@ const sequelize = new Sequelize(
 );
 
 const ID_TYPE = Sequelize.INTEGER;
-exports.ID_TYPE = ID_TYPE;
-exports.STRING = Sequelize.STRING;
-exports.BOOLEAN = Sequelize.BOOLEAN;
-
-exports.defineModel = (name, attributes) => {
+const defineModel = (name, attributes) => {
     var attrs = {};
     for (let key in attributes) {
         let value = attributes[key];
@@ -67,4 +63,19 @@ exports.defineModel = (name, attributes) => {
             }
         }
     });
+}
+
+const sync = () => {
+    if (process.env.NODE_ENV !== 'production') {
+        return sequelize.sync();
+    } 
+}
+
+module.exports = {
+    BOOLEAN: Sequelize.BOOLEAN,
+    STRING: Sequelize.STRING,
+    TEXT: Sequelize.TEXT,
+    ID_TYPE: ID_TYPE,
+    defineModel: defineModel,
+    sync: sync
 }

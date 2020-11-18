@@ -1,4 +1,4 @@
-const db = require('./db.js');
+const db = require('./db');
 
 module.exports = db.defineModel('membership', {
     room_id: {
