@@ -44,7 +44,7 @@ router.get('/login', (req, res) => {
         res.send("<p>This website is not supported by your browser!</p>" + 
             "<p>Please use the latest Chrome/Safari/Firefox/Opera.</p>");
     } else {
-        res.send('login');
+        res.render('index');
     }
 });
 
