@@ -67,6 +67,9 @@ const cases = [{
         room_id: 6
     }
 }, {
+    method: 'post',
+    url: 'homepage',
+},{
     method: 'get',
     url: 'logout',
 }];

@@ -6,7 +6,7 @@ const manager = new ChatroomManager();
 
 
 const checkSession = (req, res, next) => {
-    if (!req.session.username) {
+    if (!req.session.userId) {
         res.status(403).end();
     } else {
         next();
@@ -16,7 +16,7 @@ const checkSession = (req, res, next) => {
 
 router.post('/chatroom/create', checkSession);
 router.post('/chatroom/create', async (req, res) => {
-    const result = await manager.create(req.session.username, req.body);
+    const result = await manager.create(req.session.userId, req.body);
     if (result) res.send({room_id: result});
     else res.status(400).end();
 });
@@ -24,7 +24,7 @@ router.post('/chatroom/create', async (req, res) => {
 
 router.post('/chatroom/leave', checkSession);
 router.post('/chatroom/leave', async (req, res) => {
-    const success = await manager.leave(req.session.username, req.body.room_id);
+    const success = await manager.leave(req.session.userId, req.body.room_id);
     let status = success ? 200 : 400;
     res.status(status).end();
 });
@@ -39,7 +39,7 @@ router.post('/chatroom/search', async (req, res) => {
 
 router.post('/chatroom/join', checkSession);
 router.post('/chatroom/join', async (req, res) => {
-    const result = await manager.join(req.session.username, req.body.room_id);
+    const result = await manager.join(req.session.userId, req.body.room_id);
     if (result === false) res.status(500).end();
     else res.send({users: result});
 });
@@ -54,8 +54,8 @@ router.post('/chatroom/get', async (req, res) => {
 
 router.post('/homepage', checkSession);
 router.post('/homepage', async (req, res) => {
-    const rooms = await manager.getRoomsOfUser(req.session.username);
-    const user = await manager.findUserBy({username: req.session.username});
+    const rooms = await manager.getRoomsOfUser(req.session.userId);
+    const user = await manager.getUser(req.session.userId);
     if (rooms === false || !user) res.status(500).end();
     else res.send({
         chatrooms: rooms,

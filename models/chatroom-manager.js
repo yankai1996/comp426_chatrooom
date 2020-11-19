@@ -12,39 +12,14 @@ const User = model.User
 
 class ChatroomManager {
     constructor() {
-        this.userDict = {};
-        this.roster = {};
+
     }
 }
 
-ChatroomManager.prototype.findUserBy = async function (constraint) {
-    const user = await User.findOne({where: constraint});
-    if (user && !(user.username in this.userDict)) {
-        this.userDict[user.username] = user.id;
-        this.roster[user.id] = {
-            username: user.username,
-            nickname: user.nickname
-        };
-    }
-    return user;
-}
-
-ChatroomManager.prototype.getUserId = async function (username) {
-    if (username in this.userDict) return this.userDict[username];
-    const user = await this.findUserBy({username: username});
-    return user.id;
-}
-
-ChatroomManager.prototype.getNicknameById = async function (userId) {
-    if (userId in this.roster) return this.roster[userId].nickname;
-    const user = await this.findUserBy({id: userId});
-    return user.nickname;
-}
-
-ChatroomManager.prototype.getUsernameById = async function (userId) {
-    if (userId in this.roster) return this.roster[userId].username;
-    const user = await this.findUserBy({id: userId});
-    return user.username;
+ChatroomManager.prototype.getUser = async function (userId) {
+    return await User.findOne({
+        where: {id: userId}
+    });
 }
 
 const saveBase64Profile = (base64str, subdir) => {
@@ -63,9 +38,7 @@ ChatroomManager.prototype.saveRoomProfile = (base64str) => {
     saveBase64Profile(base64str, 'room');
 }
 
-ChatroomManager.prototype.create = async function (username, data) {
-    const userId = await this.getUserId(username);
-
+ChatroomManager.prototype.create = async function (userId, data) {
     let attributes = {room_name: data.room_name};
     if (data.profile) {
         this.saveRoomProfile(data.profile);
@@ -89,8 +62,7 @@ ChatroomManager.prototype.create = async function (username, data) {
     return roomId;
 }
 
-ChatroomManager.prototype.leave = async function (username, room_id) {
-    const userId = await this.getUserId(username);
+ChatroomManager.prototype.leave = async function (userId, room_id) {
     return await Membership.destroy({
         where: {
             room_id: room_id,
@@ -124,9 +96,7 @@ ChatroomManager.prototype.search = async function (keyword) {
     });
 }
 
-ChatroomManager.prototype.join = async function (username, roomId) {
-    const userId = await this.getUserId(username);
-    
+ChatroomManager.prototype.join = async function (userId, roomId) {
     let success = await Membership.create({
         room_id: roomId,
         user_id: userId
@@ -153,16 +123,6 @@ ChatroomManager.prototype.getUsersInRoom = async function (roomId) {
 
     if (users === false) return false;
 
-    for (let user of users) {
-        if (!(user.username in this.userDict)) {
-            this.userDict[user.username] = user.userId;
-            this.roster[user.userId] = {
-                username: user.username,
-                nickname: user.nickname
-            };
-        }
-    }
-
     return users.map(user => {
         return {
             username: user.username,
@@ -179,21 +139,22 @@ ChatroomManager.prototype.getRoomHistory = async function (roomId, limit=10, sta
     };
     if (startDate) constraints.created_at = {$lte: startDate};
 
-    return await Message.findAll({
+    let messages = await Message.findAll({
         where: constraints,
         order: [['created_at', 'DESC']],
         limit: limit,
         raw: true
-    }).then(result => {
-        return result.map(m => {
-            return {
-                username: this.getUsernameById(m.user_id),
-                nickname: this.getNicknameById(m.user_id),
-                timestamp: m.created_at,
-                text: m.text
-            };
-        });
     });
+    let promises = messages.map(async (m) => {
+        let user = await this.getUser(m.user_id);
+        return {
+            username: user.username,
+            nickname: user.nickname,
+            timestamp: m.created_at,
+            text: m.text
+        };
+    });
+    return await Promise.all(promises);
 }
 
 ChatroomManager.prototype.getRoomInfo = async function (roomId) {
@@ -205,9 +166,7 @@ ChatroomManager.prototype.getRoomInfo = async function (roomId) {
     };
 }
 
-ChatroomManager.prototype.getRoomsOfUser = async function (username) {
-    const userId = await this.getUserId(username);
-
+ChatroomManager.prototype.getRoomsOfUser = async function (userId) {
     const roomIds = await Membership.findAll({
         where: {user_id: userId},
         attributes: ['room_id'],

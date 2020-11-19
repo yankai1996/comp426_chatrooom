@@ -54,15 +54,23 @@ Administrator.prototype.loginUser = async function(data) {
         returning: true,
         plain: true
     });
-    return result[1] == 1;
+    if (result[1] != 1) return false;
+
+    return await User.findOne({
+        where: {username: data.username}
+    }).then(result => {
+        return result.id;
+    }).catch(error => {
+        return false;
+    });
 }
 
-Administrator.prototype.logoutUser = async function(username) {
+Administrator.prototype.logoutUser = async function(userId) {
     const result = await User.update({
         online: false
     }, {
         where: {
-            username: username,
+            id: userId,
             online: true
         },
         returning: true,

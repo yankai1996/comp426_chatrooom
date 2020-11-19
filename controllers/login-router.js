@@ -53,19 +53,20 @@ router.post('/signup', async (req, res) => {
 });
 
 router.post('/login', async (req, res) => {
-    const success = await admin.loginUser(req.body);
+    const userId = await admin.loginUser(req.body);
+    let success = userId !== false;
     if (success) {
-        req.session.username = req.body.username;
+        req.session.userId = userId;
     }
     sendStatus(success, res);
 });
 
 router.get('/logout', async (req, res) => {
     let success = false;
-    const username = req.session.username;
-    if (username) {
+    const userId = req.session.userId;
+    if (userId) {
         req.session.destroy();
-        success = await admin.logoutUser(username)
+        success = await admin.logoutUser(userId)
     }
     sendStatus(success, res);
 });
