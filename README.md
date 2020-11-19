@@ -2,7 +2,7 @@
 
 ### Config
 
-Before running the node, create a file `config.js` with the following content:
+For local testing, create a file `config-test.js` with the following content:
 
 ```js
 exports.dbConfig = {
@@ -11,18 +11,20 @@ exports.dbConfig = {
     password: '<your MySQL password>',
     host: '<your database host>',
     port: 3306,
-    init: true // set false if table already exitsts in the database
 };
 
 exports.serverConfig = {
-    port: 8888
+    port: 3000
 }
 
-exports.staticPath = 'test'; // or 'public'
-exports.secret = "secret to parse cookies";
+exports.staticPath = 'test';
+exports.secret = "<your secret to parse cookies>";
 ```
 
-
+then run
+```
+npm run test
+```
 
 ### UI/UX Mockups
 

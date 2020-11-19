@@ -39,11 +39,11 @@ app.use(express.static(path.join(__dirname, config.staticPath)));
 app.use('/node_modules', express.static(__dirname + '/node_modules'));
 
 
-if (config.staticPath == 'test') {
-    app.get('/', function(req, res) {
-        res.sendFile(path.join(__dirname + '/test/index.html'));
-    });
-}
+// if (config.staticPath == 'test') {
+//     app.get('/', function(req, res) {
+//         res.sendFile(path.join(__dirname + '/test/index.html'));
+//     });
+// }
 
 app.use(login_router);
 app.use(chatroom_router);
