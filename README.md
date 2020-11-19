@@ -5,7 +5,7 @@
 Before running the node, create a file `config.js` with the following content:
 
 ```js
-const dbConfig = {
+exports.dbConfig = {
     database: '<your database name>',
     username: '<your MySQL username>',
     password: '<your MySQL password>',
@@ -14,12 +14,12 @@ const dbConfig = {
     init: true // set false if table already exitsts in the database
 };
 
-const serverConfig = {
+exports.serverConfig = {
     port: 8888
 }
 
-exports.dbConfig = dbConfig;
-exports.serverConfig = serverConfig;
+exports.staticPath = 'test'; // or 'public'
+exports.secret = "secret to parse cookies";
 ```
 
 
