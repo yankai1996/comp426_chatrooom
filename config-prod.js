@@ -1,9 +1,9 @@
 exports.dbConfig = {
-    database: 'heroku_ef214a42d92702a', 
-    username: 'b0083d118a2288',
-    password: '981f5fe5',
-    host: 'us-cdbr-east-02.cleardb.com',
-    port: 3306
+    host: 'd6vscs19jtah8iwb.cbetxkdyhwsb.us-east-1.rds.amazonaws.com',
+    port: 3306,
+    username: 'nvugj58qcm75g0iq',
+    password: 'de2jp5eocwsjf69r',
+    database: 'ojjuba9bsm10ejel', 
 };
 
 exports.staticPath = 'test';
