@@ -4,6 +4,7 @@ const express = require('express')
     , path = require('path')
 //   , logger = require('morgan')
     , expressSession = require("express-session")
+    , MySQLStore = require('express-mysql-session')(expressSession)
     , cookieParser = require('cookie-parser')
     , bodyParser = require('body-parser')
     , ioCookie = require('socket.io-cookie')
@@ -17,10 +18,18 @@ const express = require('express')
 const app = express();
 const server = require('http').createServer(app);
 
+const sessionStore = new MySQLStore({
+    host: config.dbConfig.host,
+    port: config.dbConfig.port,
+    user: config.dbConfig.username,
+    password: config.dbConfig.password,
+    database: config.dbConfig.database
+});
 const session = expressSession({
     secret: config.secret,
-    resave: true,
-    saveUninitialized: true,
+    store: sessionStore,
+    resave: false,
+    saveUninitialized: false,
 });
 
 const operator = new Operator(server);
@@ -38,13 +47,6 @@ app.use(session);
 app.use(express.static(path.join(__dirname, config.staticPath)));
 app.use('/node_modules', express.static(__dirname + '/node_modules'));
 
-
-// if (config.staticPath == 'test') {
-//     app.get('/', function(req, res) {
-//         res.sendFile(path.join(__dirname + '/test/index.html'));
-//     });
-// }
-
 app.use(login_router);
 app.use(chatroom_router);
 
@@ -54,6 +56,7 @@ app.use((req, res) => {
     res.end();
 });
 
-server.listen(config.serverConfig.port, () => {
-    console.log(`Server is running on port ${config.serverConfig.port}!`);
+let port = process.env.PORT || 3000;
+server.listen(port, () => {
+    console.log(`Server is running on port ${port}!`);
 });
