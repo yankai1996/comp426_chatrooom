@@ -31,6 +31,7 @@
 //   console.log(test);
 // } 
 
+let socket = null;
 
 /**
  * Code to send the axios request
@@ -70,6 +71,11 @@ async function sendRequest() {
     message.innerHTML = 'Sending request';
     message.className = '';
     const result = await axios(params);
+
+    // if (result.status == 200 && result.config.url == 'login') {
+    //   socket = io();
+    // }
+
     response.innerText = JSON.stringify(result, null, 4);
     response.className = 'code has-success';
     message.innerHTML = 'Success response received';

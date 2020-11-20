@@ -15,7 +15,4 @@ for (let f of js_files) {
     module.exports[name] = require(`${__dirname}/${f}`);
 }
 
-// module.exports.sync = () => {
-//     db.sync();
-// };
 db.sync();

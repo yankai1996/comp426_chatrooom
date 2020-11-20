@@ -5,10 +5,10 @@ module.exports = db.defineModel('user', {
         type: db.STRING(64),
         unique: true
     },
-    password: db.STRING(128),
+    password: db.STRING(32),
     nickname: db.STRING(32),
     profile: {
-        type: db.STRING(135),
+        type: db.STRING(40),
         defaultValue: 'default.png'
     },
     online: {

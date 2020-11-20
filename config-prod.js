@@ -6,5 +6,4 @@ exports.dbConfig = {
     database: 'ojjuba9bsm10ejel', 
 };
 
-exports.staticPath = 'test';
 exports.secret = "secret to parse cookies";

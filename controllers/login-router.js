@@ -35,6 +35,9 @@ const compatibleBrowser = (info) => {
 const sendStatus = (condition, res) => {
     if (condition) res.status(200);
     else res.status(400);
+    // res.set("Access-Control-Allow-Origin", "localhost:3000");
+    // res.set("Access-Control-Allow-Methods", "DELETE, POST, GET, OPTIONS");
+    // res.set("Access-Control-Allow-Headers", "Content-Type, Access-Control-Allow-Headers, Authorization, X-Requested-With");
     res.end();
 }
 

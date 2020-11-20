@@ -1,3 +1,4 @@
+const crypto = require('crypto');
 const ChatroomManager = require('./chatroom-manager');
 const model = require('./model-sequelize/model');
 const User = model.User;
@@ -11,11 +12,14 @@ class Administrator {
 
 const usernameExist = async (username) => {
     const result = await User.findOne({
-        where: {
-            username: username
-        }
+        where: {username: username}
     });
     return result != null;
+}
+
+const hashedPassword = (password) => {
+    return password;
+    // return crypto.createHash('md5').update(password).digest('hex');
 }
 
 Administrator.prototype.createUser = async function(data) {
@@ -26,7 +30,7 @@ Administrator.prototype.createUser = async function(data) {
     let attributes = {
         username: data.username,
         nickname: data.nickname,
-        password: data.password
+        password: hashedPassword(data.password)
     }
 
     if (data.profile) {
@@ -48,7 +52,7 @@ Administrator.prototype.loginUser = async function(data) {
     }, {
         where: {
             username: data.username,
-            password: data.password,
+            password: hashedPassword(data.password),
             online: false
         },
         returning: true,
