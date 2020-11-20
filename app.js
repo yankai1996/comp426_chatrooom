@@ -33,7 +33,7 @@ const session = expressSession({
 });
 
 const operator = new Operator(server);
-operator.use(ioCookie);
+// operator.use(ioCookie);
 operator.use(sharedSession(session, cookieParser(config.secret)));
 
 app.set('views', path.join(__dirname, 'views'));
