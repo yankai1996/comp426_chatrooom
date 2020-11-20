@@ -22,6 +22,12 @@ ChatroomManager.prototype.getUser = async function (userId) {
     });
 }
 
+ChatroomManager.prototype.getRoom = async function (roomId) {
+    return await Chatroom.findOne({
+        where: {id: roomId}
+    });
+}
+
 const saveBase64Profile = (base64str, subdir) => {
     let buf = Buffer.from(base64str, 'base64');
     fs.writeFile(path.join(__dirname, `../public/image/${subdir}/${base64str}.jpg`), buf, (error) => {
@@ -45,27 +51,31 @@ ChatroomManager.prototype.create = async function (userId, data) {
         attributes.profile = data.profile;
     }
 
-    const roomId = await Chatroom.create(attributes).then(result => {
-        return result.id;
+    const room = await Chatroom.create(attributes).then(result => {
+        return {
+            room_id: result.id,
+            room_name: result.room_name,
+            profile: result.profile
+        };
     }).catch(error => {
         console.log(error);
         return null;
     });
 
-    if (roomId) {
+    if (room != null) {
         await Membership.create({
-            room_id: roomId,
+            room_id: room.room_id,
             user_id: userId
         });
     }
 
-    return roomId;
+    return room;
 }
 
-ChatroomManager.prototype.leave = async function (userId, room_id) {
+ChatroomManager.prototype.leave = async function (userId, roomId) {
     return await Membership.destroy({
         where: {
-            room_id: room_id,
+            room_id: roomId,
             user_id: userId
         }
     }).then(result => {
@@ -105,7 +115,20 @@ ChatroomManager.prototype.join = async function (userId, roomId) {
     });
     if (!success) return false;
 
-    return await this.getUsersInRoom(roomId);
+    let room = await this.getRoom(roomId).then(room => {
+        return {
+            room_id: room.id,
+            room_name: room.room_name,
+            profile: room.profile
+        }
+    });
+
+    let users =  await this.getUsersInRoom(roomId);
+    
+    return {
+        room: room,
+        users: users
+    };
 }
 
 ChatroomManager.prototype.getUsersInRoom = async function (roomId) {

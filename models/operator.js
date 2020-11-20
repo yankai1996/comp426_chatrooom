@@ -1,5 +1,4 @@
 const socketio = require('socket.io');
-const ioCookie = require('socket.io-cookie');
 const model = require('./model-sequelize/model');
 
 const User = model.User
@@ -49,7 +48,11 @@ Operator.prototype.newSocket = async function (socket) {
             message: data.message
         });
         this.saveMessage(data.roomId, socket.handshake.session.userId, data.message);
-    })
+    });
+
+    socket.on('disconnect', ()=> {
+
+    });
 }
 
 

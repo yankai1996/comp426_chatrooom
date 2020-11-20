@@ -9,22 +9,22 @@ const cases = [{
     method: 'post', 
     url: 'signup',
     data: {
-        username: 'yankai',
-        nickname: 'Kai Yan',
+        username: 'hello@world.com',
+        nickname: 'Hello Worls',
         password: 'admin'
     }
 }, {
     method: 'post',
     url: 'login',
     data: {
-        username: 'yankai',
+        username: 'hello@world.com',
         password: 'admin'
     }
 }, {
     method: 'post',
     url: 'chatroom/create',
     data: {
-        room_name: 'My Room'
+        room_name: 'Hello Room'
     }
 }, {
     method: 'post',
