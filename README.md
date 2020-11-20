@@ -13,11 +13,6 @@ exports.dbConfig = {
     port: 3306,
 };
 
-exports.serverConfig = {
-    port: 3000
-}
-
-exports.staticPath = 'test';
 exports.secret = "<your secret to parse cookies>";
 ```
 

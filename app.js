@@ -44,7 +44,7 @@ app.use(bodyParser.json());
 app.use(bodyParser.urlencoded({extended:false}));
 app.use(cookieParser(config.secret));
 app.use(session);
-app.use(express.static(path.join(__dirname, config.staticPath)));
+app.use(express.static(path.join(__dirname, 'public')));
 app.use('/node_modules', express.static(__dirname + '/node_modules'));
 
 app.use(login_router);
