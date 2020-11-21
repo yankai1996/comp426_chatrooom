@@ -10,6 +10,13 @@ const User = model.User
 
 const manager = new ChatroomManager();
 
+const INIT = 'init'
+    , ERROR = 'error'
+    , JOIN = 'join'
+    , LEAVE = 'leave'
+    , MESSAGE = 'message'
+;
+
 
 const getRoomIds = async (userId) => {
     return await Membership.findAll({
@@ -22,7 +29,7 @@ const getRoomIds = async (userId) => {
 const getUser = async (userId) => {
     return await User.findOne({
         where: {id: userId},
-        attributes: ['username', 'nickname', 'profile']
+        attributes: ['id', 'username', 'nickname', 'profile']
     });
 }
 
@@ -51,16 +58,35 @@ Operator.prototype.newSocket = async function (socket) {
     let rooms = null;
     let user = null;
 
-    socket.on('init', async (userId) => {
-        userId = userId;
+    socket.on(INIT, async (token) => {
+        if (!token || userId != null) {
+            socket.emit(ERROR, 'init error');
+            return;
+        } 
+        try {
+            user = await getUser(token);
+        } catch (error) {
+            socket.emit(ERROR, error);
+            return;
+        }
+        if (user == null) {
+            socket.emit(ERROR, 'init error');
+            return;
+        }
+
+        userId = user.id;
         rooms = await getRoomIds(userId);
-        user = await getUser(userId);
         socket.join(rooms);
         console.log(`Socket: ${user.username} connected!`);
     });
 
     socket.on('join', (roomId) => {
-        socket.join(roomId);
+        try {
+            socket.join(roomId);
+        } catch (error) {
+            socket.emit(ERROR, error);
+            return;
+        }
         socket.broadcast.to(data.roomId).emit('join', {
             room_id: roomId,
             username: user.username,
@@ -70,8 +96,13 @@ Operator.prototype.newSocket = async function (socket) {
     });
 
     socket.on('leave', async (roomId) => {
-        await manager.leave(userId, roomId);
-        socket.leave(roomId);
+        try {
+            await manager.leave(userId, roomId);
+            socket.leave(roomId);
+        } catch (error) {
+            socket.emit(ERROR, error);
+            return;
+        }
         socket.broadcast.to(data.roomId).emit('leave', {
             room_id: roomId,
             username: user.username
@@ -79,15 +110,20 @@ Operator.prototype.newSocket = async function (socket) {
     });
 
     socket.on('message', (data) => {
-        socket.broadcast.to(data.roomId).emit('message', {
-            room_id: data.roomId,
-            message: data.message
-        });
+        try {
+            socket.broadcast.to(data.roomId).emit('message', {
+                room_id: data.roomId,
+                message: data.message
+            });
+        } catch (error) {
+            socket.emit(ERROR, error);
+            return;
+        }
         saveMessage(data.roomId, socket.handshake.session.userId, data.message);
     });
 
     socket.on('disconnect', ()=> {
-        socket.handshake.session.destroy();
+        // socket.handshake.session.destroy();
     });
 }
 
