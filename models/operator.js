@@ -1,5 +1,6 @@
 const socketio = require('socket.io');
 const ChatroomManager = require('./chatroom-manager');
+const Administrator = require('../models/administrator');
 const model = require('./model-sequelize/model');
 
 const User = model.User
@@ -8,10 +9,11 @@ const User = model.User
     , Message = model.Message
 ;
 
+const admin = new Administrator();
 const manager = new ChatroomManager();
 
 const INIT = 'init'
-    , ERROR = 'error'
+    , ERROR = 'err'
     , JOIN = 'join'
     , LEAVE = 'leave'
     , MESSAGE = 'message'
@@ -36,7 +38,7 @@ const getUser = async (userId) => {
 const saveMessage = (roomId, userId, text) => {
     Message.create({
         room_id: roomId,
-        userId: userId,
+        user_id: userId,
         text: text
     });
 }
@@ -54,17 +56,23 @@ Operator.prototype.use = function (middleware) {
 }
 
 Operator.prototype.newSocket = async function (socket) {
-    let userId = null;
     let rooms = null;
     let user = null;
 
+    console.log('New Socket!');
+
     socket.on(INIT, async (token) => {
-        if (!token || userId != null) {
+        if (!token || user != null) {
             socket.emit(ERROR, 'init error');
             return;
         } 
         try {
-            user = await getUser(token);
+            let userId = await admin.getUserId(token);
+            if (userId == null) {
+                socket.emit(ERROR, 'init 403');
+            } else {
+                user = await getUser(userId);
+            }
         } catch (error) {
             socket.emit(ERROR, error);
             return;
@@ -74,20 +82,27 @@ Operator.prototype.newSocket = async function (socket) {
             return;
         }
 
-        userId = user.id;
-        rooms = await getRoomIds(userId);
+        rooms = await getRoomIds(user.id);
         socket.join(rooms);
         console.log(`Socket: ${user.username} connected!`);
+        socket.emit(INIT, {
+            username: user.username,
+            token: token
+        });
     });
 
     socket.on('join', (roomId) => {
+        if (user == null) {
+            socket.emit(ERROR, 'didn\'t init');
+            return;
+        }
         try {
             socket.join(roomId);
         } catch (error) {
-            socket.emit(ERROR, error);
+            socket.emit(ERROR, 'invalid room_id');
             return;
         }
-        socket.broadcast.to(data.roomId).emit('join', {
+        socket.broadcast.to(roomId).emit('join', {
             room_id: roomId,
             username: user.username,
             nickname: user.nickname,
@@ -96,34 +111,46 @@ Operator.prototype.newSocket = async function (socket) {
     });
 
     socket.on('leave', async (roomId) => {
-        try {
-            await manager.leave(userId, roomId);
-            socket.leave(roomId);
-        } catch (error) {
-            socket.emit(ERROR, error);
+        if (user == null) {
+            socket.emit(ERROR, 'didn\'t init');
             return;
         }
-        socket.broadcast.to(data.roomId).emit('leave', {
+        try {
+            await manager.leave(user.id, roomId);
+            socket.leave(roomId);
+        } catch (error) {
+            socket.emit(ERROR, 'invalid room_id');
+            return;
+        }
+        socket.broadcast.to(roomId).emit('leave', {
             room_id: roomId,
             username: user.username
         });
     });
 
     socket.on('message', (data) => {
+        if (user == null) {
+            socket.emit(ERROR, 'didn\'t init');
+            return;
+        }
         try {
-            socket.broadcast.to(data.roomId).emit('message', {
-                room_id: data.roomId,
+            socket.broadcast.to(data.room_id).emit('message', {
+                room_id: data.room_id,
                 message: data.message
             });
         } catch (error) {
             socket.emit(ERROR, error);
             return;
         }
-        saveMessage(data.roomId, socket.handshake.session.userId, data.message);
+        saveMessage(data.room_id, user.id, data.message);
     });
 
-    socket.on('disconnect', ()=> {
-        // socket.handshake.session.destroy();
+    socket.on('disconnect', () => {
+        if (user == null) {
+            socket.emit(ERROR, 'didn\'t init');
+            return;
+        }
+        admin.logoutUser(user.id);
     });
 }
 

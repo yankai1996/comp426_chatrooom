@@ -1,8 +1,12 @@
 const crypto = require('crypto');
 const ChatroomManager = require('./chatroom-manager');
 const model = require('./model-sequelize/model');
-const User = model.User;
+
+const User = model.User
+    , Session = model.Session
+;
 const chatroomManager = new ChatroomManager();
+
 
 class Administrator {
     constructor(){
@@ -56,20 +60,43 @@ Administrator.prototype.loginUser = async function(data) {
         },
         returning: true,
         plain: true
+    }).catch(error => {
+        return null;
     });
-    if (result[1] != 1) return false;
+    if (result[1] != 1) return null;
 
-    return await User.findOne({
+    const token = crypto.randomBytes(32).toString('hex');
+    
+    const userId = await User.findOne({
         where: {username: data.username}
     }).then(result => {
         return result.id;
     }).catch(error => {
-        return false;
+        return null;
+    });
+
+    return await Session.create({
+        token: token,
+        user_id: userId
+    }).then(result => {
+        return result.token;
+    }).catch(error => {
+        return null;
     });
 }
 
-Administrator.prototype.logoutUser = async function(userId) {
-    return await User.update({
+Administrator.prototype.getUserId = async function (token) {
+    return await Session.findOne({
+        where: {token: token}
+    }).then(result => {
+        return result.user_id;
+    }).catch(error => {
+        return null;
+    });
+}
+
+Administrator.prototype.logoutUser = async function (userId) {
+    let success = await User.update({
         online: false
     }, {
         where: {
@@ -83,6 +110,14 @@ Administrator.prototype.logoutUser = async function(userId) {
     }).catch(error => {
         return false
     });
+
+    if (success) {
+        await Session.destroy({
+            where: {user_id: userId}
+        });
+    }
+
+    return success;
 }
 
 module.exports = Administrator;

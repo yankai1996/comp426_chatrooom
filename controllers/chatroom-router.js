@@ -1,14 +1,17 @@
 const express = require('express');
 const ChatroomManager = require('../models/chatroom-manager');
+const Administrator = require('../models/administrator');
 
 const router = express.Router();
 const manager = new ChatroomManager();
+const admin = new Administrator();
 
 
-const checkUserId = (req, res, next) => {
-    if (!req.body.user_id) {
-        res.status(403).end();
-    } else {
+const checkToken = async (req, res, next) => {
+    let userId = await admin.getUserId(req.body.token);
+    if (userId == null) res.status(403).end();
+    else {
+        req.body.userId = userId;
         next();
     }
 }
@@ -18,22 +21,23 @@ const redirectedProfilePath = (subdir, profile) => {
 }
 
 
-router.post('/chatroom/create', checkUserId);
+router.post('/chatroom/create', checkToken);
 router.post('/chatroom/create', async (req, res) => {
-    let room = await manager.create(req.body.user_id, req.body);
+    let room = await manager.create(req.body.userId, req.body);
     room.profile = redirectedProfilePath('room', room.profile);
     if (room) res.send(room);
     else res.status(400).end();
 });
 
 
-router.post('/chatroom/leave', checkUserId);
+router.post('/chatroom/leave', checkToken);
 router.post('/chatroom/leave', async (req, res) => {
-    const success = await manager.leave(req.body.user_id, req.body.room_id);
+    const success = await manager.leave(req.body.userId, req.body.room_id);
     res.status(success ? 200 : 400).end();
 });
 
 
+router.post('/chatroom/search', checkToken);
 router.post('/chatroom/search', async (req, res) => {
     let result = await manager.search(req.body.keyword);
     result = result.map(r => {
@@ -44,9 +48,10 @@ router.post('/chatroom/search', async (req, res) => {
 });
 
 
-router.post('/chatroom/join', checkUserId);
+router.post('/chatroom/join', checkToken);
 router.post('/chatroom/join', async (req, res) => {
-    let result = await manager.join(req.body.user_id, req.body.room_id);
+    console.log(req.body)
+    let result = await manager.join(req.body.userId, req.body.room_id);
     if (result === false) res.status(500).end();
     else {
         result.room.profile = redirectedProfilePath('room', result.room.profile);
@@ -55,6 +60,7 @@ router.post('/chatroom/join', async (req, res) => {
 });
 
 
+router.post('//chatroom/get', checkToken);
 router.post('/chatroom/get', async (req, res) => {
     let result = await manager.getRoomInfo(req.body.room_id);
     result.users = result.users.map(u => {
@@ -65,10 +71,10 @@ router.post('/chatroom/get', async (req, res) => {
 });
 
 
-router.post('/homepage', checkUserId);
+router.post('/homepage', checkToken);
 router.post('/homepage', async (req, res) => {
-    let rooms = await manager.getRoomsOfUser(req.body.user_id);
-    let user = await manager.getUser(req.body.user_id);
+    let rooms = await manager.getRoomsOfUser(req.body.userId);
+    let user = await manager.getUser(req.body.userId);
     if (rooms === false || !user) res.status(500).end();
     else res.send({
         chatrooms: rooms.map(r => {

@@ -33,6 +33,7 @@ const sendStatus = (condition, res) => {
     res.end();
 }
 
+
 router.get('/', (req, res) => {
     const info = browser(req.headers['user-agent']);
     if (!compatibleBrowser(info)) {
@@ -43,19 +44,28 @@ router.get('/', (req, res) => {
     }
 });
 
+
 router.post('/signup', async (req, res) => {
     sendStatus(await admin.createUser(req.body), res);
 });
 
+
 router.post('/login', async (req, res) => {
-    const userId = await admin.loginUser(req.body);
-    if (userId !== false) res.send({user_id: userId});
+    const token = await admin.loginUser(req.body);
+    if (token != null) res.send({token: token});
     else res.status(400).end(); 
 });
 
+router.post('/logout', async (req, res, next) => {
+    let userId = await admin.getUserId(req.body.token);
+    if (userId == null) res.status(403).end();
+    else {
+        req.body.userId = userId;
+        next();
+    }
+});
 router.post('/logout', async (req, res) => {
-    let success = false;
-    if (req.body.user_id) success = await admin.logoutUser(req.body.user_id);
+    let success = await admin.logoutUser(req.body.userId);
     sendStatus(success, res);
 });
 
