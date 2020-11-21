@@ -47,12 +47,18 @@ Operator.prototype.use = function (middleware) {
 }
 
 Operator.prototype.newSocket = async function (socket) {
-    const userId = socket.handshake.session.userId;
-    let rooms = await getRoomIds(userId);
-    let user = await getUser(userId);
-    socket.join(rooms);
+    let userId = null;
+    let rooms = null;
+    let user = null;
 
-    console.log(`Socket: ${user.username} connected!`);
+    socket.on('init', async (userId) => {
+        userId = userId;
+        rooms = await getRoomIds(userId);
+        user = await getUser(userId);
+        socket.join(rooms);
+        console.log(`Socket: ${user.username} connected!`);
+    });
+
     socket.on('join', (roomId) => {
         socket.join(roomId);
         socket.broadcast.to(data.roomId).emit('join', {

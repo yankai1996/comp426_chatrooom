@@ -5,11 +5,6 @@ const Administrator = require('../models/administrator');
 const router = express.Router();
 const admin = new Administrator();
 
-// root url
-router.get('/', (req, res) => {
-    res.redirect('/login');
-});
-
 const compatibleBrowser = (info) => {
     switch (info && info.name) {
         case 'chrome':
@@ -35,13 +30,10 @@ const compatibleBrowser = (info) => {
 const sendStatus = (condition, res) => {
     if (condition) res.status(200);
     else res.status(400);
-    // res.set("Access-Control-Allow-Origin", "localhost:3000");
-    // res.set("Access-Control-Allow-Methods", "DELETE, POST, GET, OPTIONS");
-    // res.set("Access-Control-Allow-Headers", "Content-Type, Access-Control-Allow-Headers, Authorization, X-Requested-With");
     res.end();
 }
 
-router.get('/login', (req, res) => {
+router.get('/', (req, res) => {
     const info = browser(req.headers['user-agent']);
     if (!compatibleBrowser(info)) {
         res.send("<p>This website is not supported by your browser!</p>" + 
@@ -57,20 +49,13 @@ router.post('/signup', async (req, res) => {
 
 router.post('/login', async (req, res) => {
     const userId = await admin.loginUser(req.body);
-    let success = userId !== false;
-    if (success) {
-        req.session.userId = userId;
-    }
-    sendStatus(success, res);
+    if (userId !== false) res.send({user_id: userId});
+    else res.status(400).end(); 
 });
 
-router.get('/logout', async (req, res) => {
+router.post('/logout', async (req, res) => {
     let success = false;
-    const userId = req.session.userId;
-    if (userId) {
-        req.session.destroy();
-        success = await admin.logoutUser(userId)
-    }
+    if (req.body.user_id) success = await admin.logoutUser(req.body.user_id);
     sendStatus(success, res);
 });
 

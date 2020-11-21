@@ -9,7 +9,7 @@ const cases = [{
     method: 'post', 
     url: 'signup',
     data: {
-        username: 'hello@world.com',
+        username: 'Jack',
         nickname: 'Hello Worls',
         password: 'admin'
     }
@@ -17,61 +17,67 @@ const cases = [{
     method: 'post',
     url: 'login',
     data: {
-        username: 'hello@world.com',
+        username: 'Jack',
         password: 'admin'
     }
 }, {
     method: 'post',
     url: 'chatroom/create',
     data: {
+        user_id: 11,
         room_name: 'Hello Room'
     }
 }, {
     method: 'post',
     url: 'chatroom/search',
     data: {
+        user_id: 11,
         keyword: 'Es'
     }
 }, {
     method: 'post',
     url: 'chatroom/join',
     data: {
+        user_id: 11,
         room_id: '5'
     }
 }, {
     method: 'post',
     url: 'chatroom/join',
     data: {
+        user_id: 11,
         room_id: 6
     }
 }, {
     method: 'post',
     url: 'chatroom/leave',
     data: {
+        user_id: 11,
         room_id: 5
     }
 }, {
+    user_id: 11,
     method: 'get',
     url: 'logout'
-}, {
-    method: 'post',
-    url: 'login',
-    data: {
-        username: 'test',
-        password: 'test'
-    }
-}, {
-    method: 'post',
-    url: 'chatroom/get',
-    data: {
-        room_id: 6
-    }
-}, {
-    method: 'post',
-    url: 'homepage',
-},{
-    method: 'get',
-    url: 'logout',
+// }, {
+//     method: 'post',
+//     url: 'login',
+//     data: {
+//         username: 'test',
+//         password: 'test'
+//     }
+// }, {
+//     method: 'post',
+//     url: 'chatroom/get',
+//     data: {
+//         room_id: 6
+//     }
+// }, {
+//     method: 'post',
+//     url: 'homepage',
+// },{
+//     method: 'get',
+//     url: 'logout',
 }];
 
 async function runTests() {
@@ -83,4 +89,4 @@ async function runTests() {
     }
 }
 
-// runTests();
+runTests();

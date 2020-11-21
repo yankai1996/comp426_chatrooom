@@ -5,8 +5,8 @@ const router = express.Router();
 const manager = new ChatroomManager();
 
 
-const checkSession = (req, res, next) => {
-    if (!req.session.userId) {
+const checkUserId = (req, res, next) => {
+    if (!req.body.user_id) {
         res.status(403).end();
     } else {
         next();
@@ -18,23 +18,22 @@ const redirectedProfilePath = (subdir, profile) => {
 }
 
 
-router.post('/chatroom/create', checkSession);
+router.post('/chatroom/create', checkUserId);
 router.post('/chatroom/create', async (req, res) => {
-    let room = await manager.create(req.session.userId, req.body);
+    let room = await manager.create(req.body.user_id, req.body);
     room.profile = redirectedProfilePath('room', room.profile);
     if (room) res.send(room);
     else res.status(400).end();
 });
 
 
-router.post('/chatroom/leave', checkSession);
+router.post('/chatroom/leave', checkUserId);
 router.post('/chatroom/leave', async (req, res) => {
-    const success = await manager.leave(req.session.userId, req.body.room_id);
+    const success = await manager.leave(req.body.user_id, req.body.room_id);
     res.status(success ? 200 : 400).end();
 });
 
 
-router.post('/chatroom/search', checkSession);
 router.post('/chatroom/search', async (req, res) => {
     let result = await manager.search(req.body.keyword);
     result = result.map(r => {
@@ -45,9 +44,9 @@ router.post('/chatroom/search', async (req, res) => {
 });
 
 
-router.post('/chatroom/join', checkSession);
+router.post('/chatroom/join', checkUserId);
 router.post('/chatroom/join', async (req, res) => {
-    let result = await manager.join(req.session.userId, req.body.room_id);
+    let result = await manager.join(req.body.user_id, req.body.room_id);
     if (result === false) res.status(500).end();
     else {
         result.room.profile = redirectedProfilePath('room', result.room.profile);
@@ -56,7 +55,6 @@ router.post('/chatroom/join', async (req, res) => {
 });
 
 
-router.post('/chatroom/get', checkSession);
 router.post('/chatroom/get', async (req, res) => {
     let result = await manager.getRoomInfo(req.body.room_id);
     result.users = result.users.map(u => {
@@ -67,10 +65,10 @@ router.post('/chatroom/get', async (req, res) => {
 });
 
 
-router.post('/homepage', checkSession);
+router.post('/homepage', checkUserId);
 router.post('/homepage', async (req, res) => {
-    let rooms = await manager.getRoomsOfUser(req.session.userId);
-    let user = await manager.getUser(req.session.userId);
+    let rooms = await manager.getRoomsOfUser(req.body.user_id);
+    let user = await manager.getUser(req.body.user_id);
     if (rooms === false || !user) res.status(500).end();
     else res.send({
         chatrooms: rooms.map(r => {

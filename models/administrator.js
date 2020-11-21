@@ -18,8 +18,7 @@ const usernameExist = async (username) => {
 }
 
 const hashedPassword = (password) => {
-    return password;
-    // return crypto.createHash('md5').update(password).digest('hex');
+    return crypto.createHash('md5').update(password).digest('hex');
 }
 
 Administrator.prototype.createUser = async function(data) {
@@ -70,7 +69,7 @@ Administrator.prototype.loginUser = async function(data) {
 }
 
 Administrator.prototype.logoutUser = async function(userId) {
-    const result = await User.update({
+    return await User.update({
         online: false
     }, {
         where: {
@@ -79,8 +78,11 @@ Administrator.prototype.logoutUser = async function(userId) {
         },
         returning: true,
         plain: true
+    }).then(result => {
+        return result[1] == 1;
+    }).catch(error => {
+        return false
     });
-    return result[1] == 1;
 }
 
 module.exports = Administrator;
