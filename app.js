@@ -5,6 +5,7 @@ const express = require('express')
     , path = require('path')
     , cookieParser = require('cookie-parser')
     , bodyParser = require('body-parser')
+    , multer = require('multer')
     , login_router = require('./controllers/login-router')
     , chatroom_router = require('./controllers/chatroom-router')
     , Operator = require('./models/operator')
@@ -24,6 +25,8 @@ app.set('view engine', 'ejs');
 app.use(bodyParser.json());
 app.use(bodyParser.urlencoded({extended:false}));
 app.use(cookieParser(config.secret));
+app.use(multer().single('file'));
+
 app.use(express.static(path.join(__dirname, 'public')));
 app.use('/node_modules', express.static(__dirname + '/node_modules'));
 

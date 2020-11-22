@@ -1,2 +1,6 @@
 node_modules/
 config-test.js
+
+public/image/
+!public/image/user/default.png
+!public/image/user/room.png

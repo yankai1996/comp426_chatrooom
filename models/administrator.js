@@ -1,12 +1,11 @@
 const crypto = require('crypto');
-const ChatroomManager = require('./chatroom-manager');
+const ProfileManager = require('../models/profile-manager');
 const model = require('./model-sequelize/model');
 
 const User = model.User
     , Session = model.Session
 ;
-const chatroomManager = new ChatroomManager();
-
+const profileManager = new ProfileManager();
 
 class Administrator {
     constructor(){
@@ -25,20 +24,23 @@ const hashedPassword = (password) => {
     return crypto.createHash('md5').update(password).digest('hex');
 }
 
-Administrator.prototype.createUser = async function(data) {
-    if (await usernameExist(data.username)) {
-        return false;
-    }
+Administrator.prototype.createUser = async function(attr, file) {
+    if (!attr.username || !attr.nickname || !attr.password) return false;
+    if (await usernameExist(attr.username)) return false;
 
     let attributes = {
-        username: data.username,
-        nickname: data.nickname,
-        password: hashedPassword(data.password)
+        username: attr.username,
+        nickname: attr.nickname,
+        password: hashedPassword(attr.password)
     }
 
-    if (data.profile) {
-        chatroomManager.saveUserProfile(data.profile);
-        attributes.profile = data.profile;
+    if (file) {
+        try {
+            attributes.profile = profileManager.saveUserProfile(file);
+        } catch (error) {
+            console.log(error);
+            return false;
+        }
     }
 
     return await User.create(attributes).then(result => {

@@ -16,17 +16,20 @@ const checkToken = async (req, res, next) => {
     }
 }
 
-const redirectedProfilePath = (subdir, profile) => {
-    return `image/${subdir}/${profile}`;
+const redirectedProfilePath = (catalog, profile) => {
+    return `image/${catalog}/${profile}`;
 }
 
 
 router.post('/chatroom/create', checkToken);
 router.post('/chatroom/create', async (req, res) => {
-    let room = await manager.create(req.body.userId, req.body);
-    room.profile = redirectedProfilePath('room', room.profile);
-    if (room) res.send(room);
-    else res.status(400).end();
+    try {
+        let room = await manager.create(req.body, req.file);
+        room.profile = redirectedProfilePath('room', room.profile);
+        res.send(room);
+    } catch (error) {
+        res.status(400).end();
+    }
 });
 
 
@@ -66,6 +69,10 @@ router.post('/chatroom/get', async (req, res) => {
     if (result == false) {
         res.status(400).end();
     } else {
+        result.messages = result.messages.map(m => {
+            m.profile = redirectedProfilePath('user', m.profile);
+            return m;
+        });
         result.users = result.users.map(u => {
             u.profile = redirectedProfilePath('user', u.profile);
             return u;

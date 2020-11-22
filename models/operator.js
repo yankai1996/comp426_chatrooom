@@ -73,6 +73,7 @@ Operator.prototype.newSocket = async function (socket) {
                 socket.emit(ERROR, 'init 403');
             } else {
                 user = await getUser(userId);
+                user.profile = `image/user/${user.profile}`;
             }
         } catch (error) {
             socket.emit(ERROR, error);
@@ -93,6 +94,8 @@ Operator.prototype.newSocket = async function (socket) {
     });
 
     socket.on(JOIN, (roomId) => {
+        roomId = parseInt(roomId);
+        console.log('join');
         if (user == null) {
             socket.emit(ERROR, 'didn\'t init');
             return;
@@ -103,7 +106,7 @@ Operator.prototype.newSocket = async function (socket) {
             socket.emit(ERROR, 'invalid room_id');
             return;
         }
-        socket.broadcast.to(roomId).emit(JOIN, {
+        socket.to(roomId).emit(JOIN, {
             room_id: roomId,
             username: user.username,
             nickname: user.nickname,
@@ -112,6 +115,8 @@ Operator.prototype.newSocket = async function (socket) {
     });
 
     socket.on(LEAVE, async (roomId) => {
+        roomId = parseInt(roomId);
+        console.log('leave');
         if (user == null) {
             socket.emit(ERROR, 'didn\'t init');
             return;
@@ -123,26 +128,29 @@ Operator.prototype.newSocket = async function (socket) {
             socket.emit(ERROR, 'invalid room_id');
             return;
         }
-        socket.broadcast.to(roomId).emit(LEAVE, {
+        socket.to(roomId).emit(LEAVE, {
             room_id: roomId,
             username: user.username
         });
     });
 
     socket.on(MESSAGE, (data) => {
+        let roomId = parseInt(data.room_id);
+        console.log('message');
         if (user == null) {
             socket.emit(ERROR, 'didn\'t init');
             return;
         }
         let message = {
-            room_id: data.room_id,
+            room_id: roomId,
             username: user.username,
             nickname: user.nickname,
+            profile: user.profile,
             timestamp: Date.now(),
             text: data.message
         }
         try {
-            socket.broadcast.to(data.room_id).emit(MESSAGE, message);
+            socket.to(roomId).emit(MESSAGE, message);
         } catch (error) {
             socket.emit(ERROR, error);
             return;
@@ -151,6 +159,7 @@ Operator.prototype.newSocket = async function (socket) {
     });
 
     socket.on('disconnect', () => {
+        console.log('disconnect');
         if (user == null) {
             socket.emit(ERROR, 'didn\'t init');
             return;

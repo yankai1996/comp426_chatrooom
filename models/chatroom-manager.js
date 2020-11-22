@@ -1,9 +1,8 @@
-// const buffer = require('buffer');
-const path = require('path');
-const fs = require('fs');
 const sequelize = require('sequelize');
-const model = require('./model-sequelize/model.js');
-const Op = require('sequelize').Op;
+const ProfileManager = require('../models/profile-manager');
+const model = require('./model-sequelize/model');
+
+const profileManager = new ProfileManager();
 
 const User = model.User
     , Chatroom = model.Chatroom
@@ -29,27 +28,12 @@ ChatroomManager.prototype.getRoom = async function (roomId) {
     });
 }
 
-const saveBase64Profile = (base64str, subdir) => {
-    let buf = Buffer.from(base64str, 'base64');
-    fs.writeFile(path.join(__dirname, `../public/image/${subdir}/${base64str}.jpg`), buf, (error) => {
-        if (error) console.log(error);
-        else return true;
-    });
-}
+ChatroomManager.prototype.create = async function (attr, file) {
+    if (!attr.room_name || !attr.userId) return null;
 
-ChatroomManager.prototype.saveUserProfile = (base64str) => {
-    saveBase64Profile(base64str, 'user');
-}
-
-ChatroomManager.prototype.saveRoomProfile = (base64str) => {
-    saveBase64Profile(base64str, 'room');
-}
-
-ChatroomManager.prototype.create = async function (userId, data) {
-    let attributes = {room_name: data.room_name};
-    if (data.profile) {
-        this.saveRoomProfile(data.profile);
-        attributes.profile = data.profile;
+    let attributes = {room_name: attr.room_name};
+    if (file) {
+        attributes.profile = profileManager.saveRoomProfile(file);
     }
 
     const room = await Chatroom.create(attributes).then(result => {
@@ -66,7 +50,7 @@ ChatroomManager.prototype.create = async function (userId, data) {
     if (room != null) {
         await Membership.create({
             room_id: room.room_id,
-            user_id: userId
+            user_id: attr.userId
         });
     }
 
@@ -163,7 +147,7 @@ ChatroomManager.prototype.getRoomHistory = async function (roomId, limit=10, sta
         order: [['created_at', 'DESC']],
         raw: true
     };
-    if (startDate) constraints.where.created_at = {[Op.gte]: startDate};
+    if (startDate) constraints.where.created_at = {[sequelize.Op.gte]: startDate};
     if (limit) constraints.limit = limit;
 
     let messages = await Message.findAll(constraints);
@@ -172,6 +156,7 @@ ChatroomManager.prototype.getRoomHistory = async function (roomId, limit=10, sta
         return {
             username: user.username,
             nickname: user.nickname,
+            profile: user.profile,
             timestamp: m.created_at,
             text: m.text
         };

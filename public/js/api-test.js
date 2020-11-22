@@ -80,7 +80,7 @@ const cases = [{
 //     url: 'logout',
 }];
 
-async function runTests() {
+async function runAPITests() {
     for (let i = 0; i < cases.length; i++) {
         console.log(`--------------- Test ${i+1} --------------`);
         console.log(`${cases[i].method} /${cases[i].url}`)
@@ -88,5 +88,3 @@ async function runTests() {
         console.log('\n');
     }
 }
-
-// runTests();

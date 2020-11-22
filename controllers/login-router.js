@@ -46,7 +46,7 @@ router.get('/', (req, res) => {
 
 
 router.post('/signup', async (req, res) => {
-    sendStatus(await admin.createUser(req.body), res);
+    sendStatus(await admin.createUser(req.body, req.file), res);
 });
 
 
