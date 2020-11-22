@@ -2,7 +2,6 @@ const socketio = require('socket.io');
 const ChatroomManager = require('./chatroom-manager');
 const Administrator = require('../models/administrator');
 const model = require('./model-sequelize/model');
-const { useReducer } = require('react');
 
 const User = model.User
     , Chatroom = model.Chatroom
@@ -48,7 +47,7 @@ const saveMessage = (userId, message) => {
 
 class Operator {
     constructor(server) {
-        this.io = socketio.listen(server);
+        this.io = socketio(server);
         this.io.sockets.on('connection', this.newSocket);
     }
 }
