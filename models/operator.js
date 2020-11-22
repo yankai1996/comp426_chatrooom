@@ -47,7 +47,7 @@ const saveMessage = (userId, message) => {
 
 class Operator {
     constructor(server) {
-        this.io = socketio(server);
+        this.io = socketio.listen(server);
         this.io.sockets.on('connection', this.newSocket);
     }
 }
