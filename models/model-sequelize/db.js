@@ -55,7 +55,7 @@ const defineModel = (name, attributes) => {
             beforeValidate: function (obj) {
                 let now = Date.now();
                 if (obj.isNewRecord) {
-                    obj.created_at = now;
+                    if (!obj.created_at) obj.created_at = now;
                     obj.updated_at = now;
                 } else {
                     obj.updated_at = Date.now();

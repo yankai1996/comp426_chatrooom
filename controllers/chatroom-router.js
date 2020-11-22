@@ -60,14 +60,18 @@ router.post('/chatroom/join', async (req, res) => {
 });
 
 
-router.post('//chatroom/get', checkToken);
+router.post('/chatroom/get', checkToken);
 router.post('/chatroom/get', async (req, res) => {
-    let result = await manager.getRoomInfo(req.body.room_id);
-    result.users = result.users.map(u => {
-        u.profile = redirectedProfilePath('user', u.profile);
-        return u;
-    });
-    res.send(result);
+    let result = await manager.getRoomInfo(req.body.userId, req.body.room_id);
+    if (result == false) {
+        res.status(400).end();
+    } else {
+        result.users = result.users.map(u => {
+            u.profile = redirectedProfilePath('user', u.profile);
+            return u;
+        });
+        res.send(result);
+    }
 });
 
 

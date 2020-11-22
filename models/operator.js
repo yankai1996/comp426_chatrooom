@@ -2,6 +2,7 @@ const socketio = require('socket.io');
 const ChatroomManager = require('./chatroom-manager');
 const Administrator = require('../models/administrator');
 const model = require('./model-sequelize/model');
+const { useReducer } = require('react');
 
 const User = model.User
     , Chatroom = model.Chatroom
@@ -35,11 +36,12 @@ const getUser = async (userId) => {
     });
 }
 
-const saveMessage = (roomId, userId, text) => {
+const saveMessage = (userId, message) => {
     Message.create({
-        room_id: roomId,
+        room_id: message.room_id,
         user_id: userId,
-        text: text
+        created_at: message.timestamp,
+        text: message.text
     });
 }
 
@@ -91,7 +93,7 @@ Operator.prototype.newSocket = async function (socket) {
         });
     });
 
-    socket.on('join', (roomId) => {
+    socket.on(JOIN, (roomId) => {
         if (user == null) {
             socket.emit(ERROR, 'didn\'t init');
             return;
@@ -102,7 +104,7 @@ Operator.prototype.newSocket = async function (socket) {
             socket.emit(ERROR, 'invalid room_id');
             return;
         }
-        socket.broadcast.to(roomId).emit('join', {
+        socket.broadcast.to(roomId).emit(JOIN, {
             room_id: roomId,
             username: user.username,
             nickname: user.nickname,
@@ -110,7 +112,7 @@ Operator.prototype.newSocket = async function (socket) {
         });
     });
 
-    socket.on('leave', async (roomId) => {
+    socket.on(LEAVE, async (roomId) => {
         if (user == null) {
             socket.emit(ERROR, 'didn\'t init');
             return;
@@ -122,27 +124,31 @@ Operator.prototype.newSocket = async function (socket) {
             socket.emit(ERROR, 'invalid room_id');
             return;
         }
-        socket.broadcast.to(roomId).emit('leave', {
+        socket.broadcast.to(roomId).emit(LEAVE, {
             room_id: roomId,
             username: user.username
         });
     });
 
-    socket.on('message', (data) => {
+    socket.on(MESSAGE, (data) => {
         if (user == null) {
             socket.emit(ERROR, 'didn\'t init');
             return;
         }
+        let message = {
+            room_id: data.room_id,
+            username: user.username,
+            nickname: user.nickname,
+            timestamp: Date.now(),
+            text: data.message
+        }
         try {
-            socket.broadcast.to(data.room_id).emit('message', {
-                room_id: data.room_id,
-                message: data.message
-            });
+            socket.broadcast.to(data.room_id).emit(MESSAGE, message);
         } catch (error) {
             socket.emit(ERROR, error);
             return;
         }
-        saveMessage(data.room_id, user.id, data.message);
+        saveMessage(user.id, message);
     });
 
     socket.on('disconnect', () => {

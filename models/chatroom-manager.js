@@ -3,6 +3,7 @@ const path = require('path');
 const fs = require('fs');
 const sequelize = require('sequelize');
 const model = require('./model-sequelize/model.js');
+const Op = require('sequelize').Op;
 
 const User = model.User
     , Chatroom = model.Chatroom
@@ -158,16 +159,14 @@ ChatroomManager.prototype.getUsersInRoom = async function (roomId) {
 
 ChatroomManager.prototype.getRoomHistory = async function (roomId, limit=10, startDate=null) {
     let constraints = {
-        room_id: roomId
-    };
-    if (startDate) constraints.created_at = {$lte: startDate};
-
-    let messages = await Message.findAll({
-        where: constraints,
+        where: {room_id: roomId},
         order: [['created_at', 'DESC']],
-        limit: limit,
         raw: true
-    });
+    };
+    if (startDate) constraints.where.created_at = {[Op.gte]: startDate};
+    if (limit) constraints.limit = limit;
+
+    let messages = await Message.findAll(constraints);
     let promises = messages.map(async (m) => {
         let user = await this.getUser(m.user_id);
         return {
@@ -180,9 +179,19 @@ ChatroomManager.prototype.getRoomHistory = async function (roomId, limit=10, sta
     return await Promise.all(promises);
 }
 
-ChatroomManager.prototype.getRoomInfo = async function (roomId) {
+ChatroomManager.prototype.getRoomInfo = async function (userId, roomId) {
     let users = await this.getUsersInRoom(roomId);
-    let messages = await this.getRoomHistory(roomId);
+    let membership = await Membership.findOne({
+        where: {
+            user_id: userId,
+            room_id: roomId
+        }
+    });
+    if (membership == null) return false;
+
+    let joinedAt = membership.created_at;
+    let messages = await this.getRoomHistory(roomId, limit=null, startDate=joinedAt);
+    messages.reverse();
     return {
         users: users,
         messages: messages
