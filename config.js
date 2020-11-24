@@ -7,7 +7,7 @@ if (process.env.NODE_ENV === 'test') {
     console.log(`Load ${testConfig}...`);
     config = require(testConfig);
 } else {
-    console.log(`Load ${testConfig}...`);
+    console.log(`Load ${prodConfig}...`);
     config = require(prodConfig);
 }
 

@@ -1,8 +1,10 @@
 # COMP426 Chatroom
 
+This is the backend for COMP423 Project.
+
 ### Config
 
-For local testing, create a file `config-test.js` with the following content:
+Create a file `config-test.js` and `config-prod.js` with the following content:
 
 ```js
 exports.dbConfig = {
@@ -16,7 +18,7 @@ exports.dbConfig = {
 exports.secret = "<your secret to parse cookies>";
 ```
 
-then run
+For local testing, run
 ```
 npm run test
 ```

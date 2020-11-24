@@ -1,5 +1,5 @@
 node_modules/
-config-test.js
+config-*.js
 
 public/image/
 !public/image/user/default.png
